@@ -1,5 +1,6 @@
 # ⚡ 𝑺𝒖𝒌𝒖𝒏𝒂 𝑴𝑫 ⚡  
-### _The King of WhatsApp Bots_
+### _The King of WhatsApp Bots_owner Pasqua
+comtact number 2349127857212
 
 > “Power isn’t given… it’s taken.” – Sukuna  
 
