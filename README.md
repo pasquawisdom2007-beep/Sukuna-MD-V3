@@ -66,7 +66,7 @@ npm start
 
 ## 🧑‍💻 Developer  
 
-👤 **Pasqua / Mr Unique Hacker**  
+👤 **Pasqua**  
 > Building next-gen WhatsApp bots  
 
 ---
