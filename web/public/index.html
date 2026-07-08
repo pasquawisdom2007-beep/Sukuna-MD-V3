@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SUKUNA MD — Cyber Pairing Panel</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <nav class="nav">
+    <div class="brand">SUKUNA <span>MD</span></div>
+    <div class="nav-links">
+      <a href="index.html">HOME</a>
+      <a href="deploy.html">DEPLOY BOT</a>
+      <a href="manage.html">MANAGE BOTS</a>
+      <a href="links.html">CHANNELS</a>
+      <a href="about.html">ABOUT</a>
+    </div>
+  </nav>
+
+  <main>
+    <section class="hero">
+      <div class="pill">⚡ FREE WHATSAPP BOT PAIRING</div>
+      <h1>Pair Your <span class="glow">WhatsApp</span> Bot <span class="glow-cyan">Instantly</span></h1>
+      <p>SUKUNA MD — a cyber-grade multi-session pairing panel. Zero setup, no console needed:
+      enter your number, get your code, link your bot, done.</p>
+
+      <div class="stats">
+        <div class="stat">
+          <div class="ring" id="ringPaired">–</div>
+          <label>BOTS PAIRED</label>
+        </div>
+        <div class="stat">
+          <div class="ring" id="ringServers">–</div>
+          <label>SERVERS</label>
+        </div>
+        <div class="stat">
+          <div class="ring" id="ringSlots">–</div>
+          <label>AVAILABLE SLOTS</label>
+        </div>
+      </div>
+
+      <div class="uptime glow">24/7 <span style="font-size:14px;display:block;color:var(--muted);letter-spacing:2px;">UPTIME</span></div>
+    </section>
+
+    <div class="card">
+      <h2><span class="ico">▣</span> Get Started</h2>
+      <p style="color:var(--muted);margin-top:-6px;">Two steps: deploy your bot with a pairing code, then manage it any time.</p>
+      <div class="row">
+        <a class="btn" href="deploy.html">🚀 Deploy Bot</a>
+        <a class="btn secondary" href="manage.html">🛠 Manage Bots</a>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2><span class="ico">✆</span> Official Links</h2>
+      <p style="color:var(--muted);margin-top:-6px;">Join our channels for updates, support and new features.</p>
+      <div class="row">
+        <a class="btn ghost" href="links.html">View all channels →</a>
+      </div>
+    </div>
+  </main>
+
+  <footer>SUKUNA MD — Cyber Neon Pairing Panel · Built on Baileys · Powered by PASQUA</footer>
+
+  <script src="js/main.js"></script>
+  <script>
+    async function loadStatus() {
+      try {
+        const r = await fetch('/api/status');
+        const d = await r.json();
+        document.getElementById('ringPaired').textContent  = d.paired;
+        document.getElementById('ringServers').textContent = d.servers;
+        document.getElementById('ringSlots').textContent   = d.available;
+      } catch (e) {
+        document.getElementById('ringPaired').textContent  = '0';
+        document.getElementById('ringServers').textContent = '1';
+        document.getElementById('ringSlots').textContent   = '—';
+      }
+    }
+    loadStatus();
+    setInterval(loadStatus, 15000);
+  </script>
+</body>
+</html>

@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Manage Bots — SUKUNA MD</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <nav class="nav">
+    <div class="brand">SUKUNA <span>MD</span></div>
+    <div class="nav-links">
+      <a href="index.html">HOME</a>
+      <a href="deploy.html">DEPLOY BOT</a>
+      <a href="manage.html">MANAGE BOTS</a>
+      <a href="links.html">CHANNELS</a>
+      <a href="about.html">ABOUT</a>
+    </div>
+  </nav>
+
+  <main>
+    <div class="pill">🛠 MANAGE BOTS</div>
+    <h1 style="font-size:32px;color:#fff;margin:0 0 8px;">Your <span class="glow">Paired Bots</span></h1>
+    <p style="color:var(--muted);max-width:600px;">Numbers are partially masked for privacy — only someone who
+    enters the exact full number can unlink it.</p>
+
+    <div class="card">
+      <h2><span class="ico">▤</span> Paired Numbers <span class="badge" id="countBadge">0 total</span></h2>
+      <div id="botList"><div class="empty">Loading…</div></div>
+      <button class="btn secondary" id="refreshBtn" style="margin-top:18px;">↻ Refresh</button>
+    </div>
+
+    <div class="card">
+      <h2><span class="ico">⏏</span> Unlink a Number</h2>
+      <p style="color:var(--muted);margin-top:-6px;">Enter the FULL phone number (with country code) to disconnect it from this panel.</p>
+      <label class="field-label">PHONE NUMBER</label>
+      <input type="tel" id="unlinkInput" placeholder="e.g. 2349012345678">
+      <button class="btn danger" id="unlinkBtn">✖ Unlink Bot</button>
+      <div class="result" id="unlinkResult"></div>
+    </div>
+  </main>
+
+  <footer>SUKUNA MD — Cyber Neon Pairing Panel · Built on Baileys · Powered by PASQUA</footer>
+
+  <script src="js/main.js"></script>
+  <script>
+    async function loadBots() {
+      const list = document.getElementById('botList');
+      list.innerHTML = '<div class="empty">Loading…</div>';
+      try {
+        const r = await fetch('/api/bots');
+        const d = await r.json();
+        document.getElementById('countBadge').textContent = `${d.bots.length} total`;
+
+        if (!d.bots.length) {
+          list.innerHTML = '<div class="empty">No bots paired yet. Head to Deploy Bot to link your first number.</div>';
+          return;
+        }
+
+        list.innerHTML = d.bots.map(b => `
+          <div class="bot-row">
+            <span class="num"><span class="dot ${b.status === 'connected' ? 'connected' : (b.status === 'connecting' ? 'connecting' : 'other')}"></span>+${b.masked}</span>
+            <span class="badge">${b.status}</span>
+          </div>
+        `).join('');
+      } catch (e) {
+        list.innerHTML = '<div class="empty">Could not load bots — try refreshing.</div>';
+      }
+    }
+    loadBots();
+    document.getElementById('refreshBtn').addEventListener('click', loadBots);
+
+    function showUnlinkResult(kind, html) {
+      const el = document.getElementById('unlinkResult');
+      el.className = `result show ${kind}`;
+      el.innerHTML = html;
+    }
+
+    document.getElementById('unlinkBtn').addEventListener('click', async () => {
+      const number = document.getElementById('unlinkInput').value.trim();
+      if (!number) { showUnlinkResult('err', '⚠️ Enter the full phone number.'); return; }
+      showUnlinkResult('ok', '⏳ Unlinking…');
+      try {
+        const r = await fetch('/api/bots/delete', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ number })
+        });
+        const d = await r.json();
+        if (d.success) {
+          showUnlinkResult('ok', `✅ +${number} has been unlinked.`);
+          document.getElementById('unlinkInput').value = '';
+          loadBots();
+        } else {
+          showUnlinkResult('err', `❌ ${d.error || 'Could not unlink that number.'}`);
+        }
+      } catch (e) {
+        showUnlinkResult('err', '❌ Network error — try again.');
+      }
+    });
+  </script>
+</body>
+</html>
