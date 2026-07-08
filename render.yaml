@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: sukuna-md
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: node index.js
+    healthCheckPath: /panel/index.html
+    envVars:
+      - key: NODE_VERSION
+        value: 20.11.0
+      - key: CAPTCHA_SECRET
+        generateValue: true
+      - key: TELEGRAM_TOKEN
+        sync: false
+      - key: PANEL_URL
+        sync: false
+      - key: OWNER_NUMBER
+        sync: false
