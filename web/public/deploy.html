@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Deploy Bot — SUKUNA MD</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <nav class="nav">
+    <div class="brand"><span class="mark">⚡</span>SUKUNA <span>MD</span></div>
+    <div class="nav-links">
+      <a href="index.html">HOME</a>
+      <a href="deploy.html">DEPLOY BOT</a>
+      <a href="manage.html">MANAGE BOTS</a>
+      <a href="links.html">CHANNELS</a>
+      <a href="about.html">ABOUT</a>
+    </div>
+  </nav>
+
+  <main>
+    <div class="pill">🚀 DEPLOY BOT</div>
+    <h1 style="font-size:32px;color:#fff;margin:0 0 8px;">Generate Your <span class="glow">Pairing Code</span></h1>
+    <p style="color:var(--muted);max-width:600px;">Enter your WhatsApp number with country code, solve the
+    security check, and get an instant pairing code to link your bot.</p>
+
+    <div class="card">
+      <h2><span class="ico">▣</span> Pairing Form</h2>
+
+      <label class="field-label">PHONE NUMBER (WITH COUNTRY CODE)</label>
+      <input type="tel" id="numberInput" placeholder="e.g. 2349012345678" autocomplete="off">
+
+      <label class="field-label" id="captchaLabel">SECURITY CHECK</label>
+      <div class="row">
+        <input type="text" id="captchaQuestion" disabled style="text-align:center;font-weight:700;">
+        <input type="text" id="captchaAnswer" placeholder="Answer">
+      </div>
+
+      <button class="btn" id="genBtn">⚡ Generate Pairing Code</button>
+
+      <div class="result" id="result"></div>
+    </div>
+
+    <div class="card">
+      <h2><span class="ico">i</span> How to link</h2>
+      <ol style="color:var(--muted);line-height:1.9;padding-left:20px;">
+        <li>Open <b style="color:#fff;">WhatsApp</b> on the number you entered above.</li>
+        <li>Go to <b style="color:#fff;">Settings → Linked Devices → Link a device</b>.</li>
+        <li>Tap <b style="color:#fff;">Link with phone number instead</b>.</li>
+        <li>Type in the code shown above — it links in seconds.</li>
+      </ol>
+    </div>
+  </main>
+
+  <footer>SUKUNA MD — Pairing Panel · Built on Baileys · Powered by PASQUA</footer>
+
+  <script src="js/main.js"></script>
+  <script>
+    let challenge = null;
+
+    async function loadCaptcha() {
+      const r = await fetch('/api/captcha');
+      challenge = await r.json();
+      document.getElementById('captchaQuestion').value = `${challenge.a} + ${challenge.b} = ?`;
+      document.getElementById('captchaAnswer').value = '';
+    }
+    loadCaptcha();
+
+    function showResult(kind, html) {
+      const el = document.getElementById('result');
+      el.className = `result show ${kind}`;
+      el.innerHTML = html;
+    }
+
+    document.getElementById('genBtn').addEventListener('click', async () => {
+      const number = document.getElementById('numberInput').value.trim();
+      const answer = document.getElementById('captchaAnswer').value.trim();
+
+      if (!number) { showResult('err', '⚠️ Enter your phone number with country code.'); return; }
+      if (!answer) { showResult('err', '⚠️ Answer the security check.'); return; }
+      if (!challenge) { showResult('err', '⚠️ Security check not loaded — refresh the page.'); return; }
+
+      showResult('ok', '⏳ Requesting pairing code…');
+
+      try {
+        const r = await fetch('/api/pair', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            number, answer,
+            a: challenge.a, b: challenge.b, exp: challenge.exp, token: challenge.token
+          })
+        });
+        const d = await r.json();
+
+        if (!d.success) {
+          showResult('err', `❌ ${d.error || 'Failed to generate pairing code.'}`);
+          loadCaptcha();
+          return;
+        }
+
+        if (d.code) {
+          showResult('ok', `✅ Pairing code generated for <b>+${number}</b><div class="code-display">${d.code}</div><button class="btn secondary copy-btn" type="button" data-code="${d.code}">⧉ Copy Code</button>Enter this in WhatsApp → Linked Devices within a few minutes.`);
+        } else {
+          showResult('ok', `✅ <b>+${number}</b> is already linked and connected.`);
+        }
+        loadCaptcha();
+      } catch (e) {
+        showResult('err', '❌ Network error — try again.');
+        loadCaptcha();
+      }
+    });
+
+    // Copy-to-clipboard for generated pairing codes
+    document.getElementById('result').addEventListener('click', async (e) => {
+      const btn = e.target.closest('.copy-btn');
+      if (!btn) return;
+      const code = btn.dataset.code;
+      const original = btn.textContent;
+      try {
+        await navigator.clipboard.writeText(code);
+        btn.textContent = '✓ Copied!';
+      } catch (err) {
+        // Fallback for browsers without Clipboard API permission
+        const ta = document.createElement('textarea');
+        ta.value = code;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        try { document.execCommand('copy'); btn.textContent = '✓ Copied!'; }
+        catch (e2) { btn.textContent = '⚠ Copy failed'; }
+        document.body.removeChild(ta);
+      }
+      setTimeout(() => { btn.textContent = original; }, 1800);
+    });
+  </script>
+</body>
+</html>
